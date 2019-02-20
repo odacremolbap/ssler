@@ -24,7 +24,6 @@ var Default = Build
 
 // Build at the repository root folder
 func Build() error {
-	mg.Deps(Deps)
 	log.Println("Building...")
 	return build(".")
 }
@@ -44,12 +43,6 @@ func Install() error {
 	paths := strings.Split(goPath, string([]rune{os.PathListSeparator}))
 	binPath := filepath.Join(paths[0], "bin")
 	return build(binPath)
-}
-
-// Deps ensure dependencies
-func Deps() error {
-	log.Println("Ensuring dependencies...")
-	return sh.RunV("dep", "ensure")
 }
 
 // Clean up

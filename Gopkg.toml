@@ -1,5 +1,0 @@
-required = ["github.com/magefile/mage/mage"]
-
-[prune]
-  go-tests = true
-  unused-packages = true
