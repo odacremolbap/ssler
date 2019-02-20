@@ -3,8 +3,4 @@
 Tool for very simple certificate signing
 
 
-
-```
-dep ensure
-mage
-```
+Build with `mage`
