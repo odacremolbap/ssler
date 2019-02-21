@@ -65,14 +65,14 @@ type X509 struct {
 type Manager struct {
 }
 
-func (c *Manager) GenRSAKey(bits int) (*rsa.PrivateKey, error) {
+func GenRSAKey(bits int) (*rsa.PrivateKey, error) {
 	return rsa.GenerateKey(rand.Reader, bits)
 }
 
 func (c *Manager) GenX509(key *rsa.PrivateKey) {
 	// x509cert := x509.Certificate{}
-	x := x509.Certificate{}
-	x.KeyUsage
+	// x := x509.Certificate{}
+	// x.KeyUsage
 }
 
 func genSerial() (*big.Int, error) {
