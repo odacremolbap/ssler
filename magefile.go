@@ -18,7 +18,7 @@ const cmdPackage = "cmd"
 
 // List of binaries to build.
 // They should be packaged under $REPO/cmd/<binary name>
-var binaries = []string{"ssler"}
+var binaries = []string{"xfon"}
 
 var Default = Build
 
