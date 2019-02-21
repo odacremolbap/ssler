@@ -21,7 +21,7 @@ var (
 func init() {
 	XfonCmd.PersistentFlags().IntP("v", "v", 1, "verbosity level")
 	XfonCmd.AddCommand(x509.RootCmd)
-	XfonCmd.AddCommand(rsa.RSACmd)
+	XfonCmd.AddCommand(rsa.RootCmd)
 }
 
 // Execute base command

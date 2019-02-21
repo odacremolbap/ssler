@@ -69,8 +69,7 @@ func (c *Manager) genRSAKey(bits int) (*rsa.PrivateKey, error) {
 	return rsa.GenerateKey(rand.Reader, bits)
 }
 
-func (c *Manager) genX509(key *rsa.PrivateKey,
-) {
+func (c *Manager) GenX509(key *rsa.PrivateKey) {
 	// x509cert := x509.Certificate{}
 	x := x509.Certificate{}
 	x.KeyUsage
