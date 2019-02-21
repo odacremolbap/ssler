@@ -65,7 +65,7 @@ type X509 struct {
 type Manager struct {
 }
 
-func (c *Manager) genRSAKey(bits int) (*rsa.PrivateKey, error) {
+func (c *Manager) GenRSAKey(bits int) (*rsa.PrivateKey, error) {
 	return rsa.GenerateKey(rand.Reader, bits)
 }
 

@@ -1,6 +1,9 @@
 package rsa
 
-import "github.com/spf13/cobra"
+import (
+	"github.com/spf13/cobra"
+	"github.com/odacremolbap/xfon/pkg/cert"
+
 
 var (
 	bits int
@@ -17,6 +20,9 @@ var (
 		Use:   "new",
 		Short: "creates new RSA key",
 		Run:   runHelp,
+		Run: func(cmd *cobra.Command, args []string) {
+			_, _ = cert.Gen(bits)
+		}
 	}
 )
 
