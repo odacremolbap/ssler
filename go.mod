@@ -1,4 +1,4 @@
-module github.com/odacremolbap/ssler
+module github.com/odacremolbap/xfon
 
 require (
 	github.com/magefile/mage v1.8.0

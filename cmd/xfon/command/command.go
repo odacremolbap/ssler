@@ -3,15 +3,15 @@ package command
 import (
 	"os"
 
-	"github.com/odacremolbap/ssler/cmd/xfon/command/rsa"
-	"github.com/odacremolbap/ssler/cmd/xfon/command/x509"
+	"github.com/odacremolbap/xfon/cmd/xfon/command/rsa"
+	"github.com/odacremolbap/xfon/cmd/xfon/command/x509"
 
 	"github.com/spf13/cobra"
 )
 
 var (
-	// SSLerCmd is the base command
-	SSLerCmd = &cobra.Command{
+	// XfonCmd is the base command
+	XfonCmd = &cobra.Command{
 		Use:   "xfon",
 		Short: "X509 minimal functionality command",
 		Run:   runHelp,
@@ -19,15 +19,15 @@ var (
 )
 
 func init() {
-	SSLerCmd.PersistentFlags().IntP("v", "v", 1, "verbosity level")
-	SSLerCmd.AddCommand(x509.RootCmd)
-	SSLerCmd.AddCommand(rsa.RSACmd)
+	XfonCmd.PersistentFlags().IntP("v", "v", 1, "verbosity level")
+	XfonCmd.AddCommand(x509.RootCmd)
+	XfonCmd.AddCommand(rsa.RSACmd)
 }
 
 // Execute base command
 func Execute() {
 
-	if err := SSLerCmd.Execute(); err != nil {
+	if err := XfonCmd.Execute(); err != nil {
 		os.Exit(-1)
 	}
 }

@@ -49,12 +49,6 @@ func init() {
 	}
 }
 
-// ExtKeyUsageOCSPSigning
-// ExtKeyUsageMicrosoftServerGatedCrypto
-// ExtKeyUsageNetscapeServerGatedCrypto
-// ExtKeyUsageMicrosoftCommercialCodeSigning
-// ExtKeyUsageMicrosoftKernelCodeSigning
-
 // X509 simplified
 type X509 struct {
 	Serial      *big.Int

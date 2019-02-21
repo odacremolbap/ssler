@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/odacremolbap/ssler/cmd/xfon/command"
+	"github.com/odacremolbap/xfon/cmd/xfon/command"
 )
 
 func main() {
