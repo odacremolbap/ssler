@@ -1,6 +1,9 @@
 package rsa
 
 import (
+	"log"
+	"os"
+
 	"github.com/odacremolbap/xfon/pkg/cert"
 	"github.com/spf13/cobra"
 )
@@ -20,7 +23,11 @@ var (
 		Use:   "new",
 		Short: "creates new RSA key",
 		Run: func(cmd *cobra.Command, args []string) {
-			_, _ = cert.GenRSAKey(bits)
+			_, err := cert.GenRSAKey(bits)
+			if err != nil {
+				log.Printf("error generating RSA key: %v", err.Error())
+				os.Exit(-1)
+			}
 		},
 	}
 )
