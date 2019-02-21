@@ -49,12 +49,6 @@ func init() {
 	}
 }
 
-// ExtKeyUsageOCSPSigning
-// ExtKeyUsageMicrosoftServerGatedCrypto
-// ExtKeyUsageNetscapeServerGatedCrypto
-// ExtKeyUsageMicrosoftCommercialCodeSigning
-// ExtKeyUsageMicrosoftKernelCodeSigning
-
 // X509 simplified
 type X509 struct {
 	Serial      *big.Int
@@ -71,12 +65,11 @@ type X509 struct {
 type Manager struct {
 }
 
-func (c *Manager) genRSAKey(bits int) (*rsa.PrivateKey, error) {
+func (c *Manager) GenRSAKey(bits int) (*rsa.PrivateKey, error) {
 	return rsa.GenerateKey(rand.Reader, bits)
 }
 
-func (c *Manager) genX509(key *rsa.PrivateKey,
-) {
+func (c *Manager) GenX509(key *rsa.PrivateKey) {
 	// x509cert := x509.Certificate{}
 	x := x509.Certificate{}
 	x.KeyUsage
