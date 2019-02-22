@@ -1,4 +1,4 @@
-package cert
+package rsa
 
 import (
 	"bytes"
@@ -9,13 +9,13 @@ import (
 	"fmt"
 )
 
-// GenerateRSAKey using the informed size
-func GenerateRSAKey(bits int) (*rsa.PrivateKey, error) {
+// GenerateKey using the informed size
+func GenerateKey(bits int) (*rsa.PrivateKey, error) {
 	return rsa.GenerateKey(rand.Reader, bits)
 }
 
-// RSAtoPEM serializes the RSA key into PEM format
-func RSAtoPEM(key *rsa.PrivateKey) (string, error) {
+// WritePEM serializes the RSA key into PEM format
+func WritePEM(key *rsa.PrivateKey) (string, error) {
 	var b bytes.Buffer
 	err := pem.Encode(
 		&b,

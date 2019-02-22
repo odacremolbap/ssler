@@ -4,7 +4,9 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
+	"fmt"
 	"math/big"
+	"net"
 	"time"
 )
 
@@ -56,7 +58,7 @@ type X509 struct {
 	NotBefore   time.Time
 	NotAfter    time.Time
 	DNSNames    []string
-	IPAddresses []string
+	IPAddresses []net.IP
 	IsCA        bool
 	KeyUsage    x509.KeyUsage
 	ExtKeyUsage x509.ExtKeyUsage
@@ -67,11 +69,19 @@ type Subject struct {
 	CommonName         string
 	Organization       string
 	OrganizationalUnit string
-	CountryCode        string
-	Province           string
-	City               string
-	Address            string
-	PostalCode         string
+}
+
+// StringArrayToKeyUsage converts a string array into a key usage type
+func StringArrayToKeyUsage(keyUsage []string) (x509.KeyUsage, error) {
+	var u x509.KeyUsage
+	for _, key := range keyUsage {
+		if v, ok := KeyUsageChoices[key]; ok {
+			u = u | v
+		} else {
+			return 0, fmt.Errorf("unknown key usage: %s", key)
+		}
+	}
+	return u, nil
 }
 
 // GenerateX509SelfSignedCertificate takes a simplified x509 definition and an RSA key,
@@ -80,12 +90,23 @@ func GenerateX509SelfSignedCertificate(c *X509, key *rsa.PrivateKey) error {
 	if c.Serial == nil {
 		c.Serial = new(big.Int).SetInt64(0)
 	}
-	return nil
+	return GenerateX509Certificate(c, nil, key, key)
 }
 
 // GenerateX509Certificate using the passed parameters
 func GenerateX509Certificate(c *X509, parent *x509.Certificate, publicKey *rsa.PrivateKey, signingKey *rsa.PrivateKey) error {
-	x509cert := &x509.Certificate{}
+	x509cert := &x509.Certificate{
+		SerialNumber:          c.Serial,
+		DNSNames:              c.DNSNames,
+		IPAddresses:           c.IPAddresses,
+		NotBefore:             c.NotBefore,
+		NotAfter:              c.NotAfter,
+		BasicConstraintsValid: c.IsCA,
+		IsCA:                  c.IsCA,
+	}
+	if parent == nil {
+		parent = x509cert
+	}
 
 	x509.CreateCertificate(
 		rand.Reader,

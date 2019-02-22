@@ -3,8 +3,8 @@ package command
 import (
 	"os"
 
+	"github.com/odacremolbap/xfon/cmd/xfon/command/cert"
 	"github.com/odacremolbap/xfon/cmd/xfon/command/rsa"
-	"github.com/odacremolbap/xfon/cmd/xfon/command/x509"
 
 	"github.com/spf13/cobra"
 )
@@ -20,7 +20,7 @@ var (
 
 func init() {
 	XfonCmd.PersistentFlags().IntP("v", "v", 1, "verbosity level")
-	XfonCmd.AddCommand(x509.RootCmd)
+	XfonCmd.AddCommand(cert.RootCmd)
 	XfonCmd.AddCommand(rsa.RootCmd)
 }
 

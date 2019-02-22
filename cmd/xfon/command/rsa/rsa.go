@@ -4,7 +4,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/odacremolbap/xfon/pkg/cert"
+	"github.com/odacremolbap/xfon/pkg/rsa"
 	"github.com/spf13/cobra"
 )
 
@@ -40,13 +40,13 @@ func init() {
 
 // newFunc runs the new RSA command
 func newFunc(cmd *cobra.Command, args []string) {
-	k, err := cert.GenerateRSAKey(bits)
+	k, err := rsa.GenerateKey(bits)
 	if err != nil {
 		log.Printf("error generating RSA key: %v", err.Error())
 		os.Exit(-1)
 	}
 
-	p, err := cert.RSAtoPEM(k)
+	p, err := rsa.WritePEM(k)
 	if err != nil {
 		log.Printf("error serializing RSA key into PEM: %v", err.Error())
 		os.Exit(-1)
