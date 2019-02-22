@@ -1,6 +1,7 @@
 package rsa
 
 import (
+	"errors"
 	"log"
 	"os"
 
@@ -23,7 +24,8 @@ var (
 	NewCmd = &cobra.Command{
 		Use:   "new",
 		Short: "creates new RSA key",
-		Run:   NewFunc,
+		Run:   newFunc,
+		Args:  newValidator,
 	}
 )
 
@@ -32,13 +34,21 @@ func runHelp(cmd *cobra.Command, args []string) {
 }
 
 func init() {
-	NewCmd.PersistentFlags().IntVar(&bits, "bits", 4096, "key size")
-	NewCmd.PersistentFlags().StringVar(&out, "out", "", "RSA key output file")
+	NewCmd.Flags().IntVar(&bits, "bits", 4096, "key size")
+	NewCmd.Flags().StringVar(&out, "out", "", "RSA key output file")
+	NewCmd.MarkFlagRequired("out")
 	RootCmd.AddCommand(NewCmd)
 }
 
-// NewFunc runs the new RSA command
-func NewFunc(cmd *cobra.Command, args []string) {
+func newValidator(cmd *cobra.Command, args []string) error {
+	if bits > 5000 {
+		return errors.New("howdy, testing validation")
+	}
+	return nil
+}
+
+// newFunc runs the new RSA command
+func newFunc(cmd *cobra.Command, args []string) {
 	k, err := cert.GenerateRSAKey(bits)
 	if err != nil {
 		log.Printf("error generating RSA key: %v", err.Error())
