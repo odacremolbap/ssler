@@ -1,7 +1,6 @@
 package rsa
 
 import (
-	"errors"
 	"log"
 	"os"
 
@@ -25,7 +24,6 @@ var (
 		Use:   "new",
 		Short: "creates new RSA key",
 		Run:   newFunc,
-		Args:  newValidator,
 	}
 )
 
@@ -38,13 +36,6 @@ func init() {
 	NewCmd.Flags().StringVar(&out, "out", "", "RSA key output file")
 	NewCmd.MarkFlagRequired("out")
 	RootCmd.AddCommand(NewCmd)
-}
-
-func newValidator(cmd *cobra.Command, args []string) error {
-	if bits > 5000 {
-		return errors.New("howdy, testing validation")
-	}
-	return nil
 }
 
 // newFunc runs the new RSA command
