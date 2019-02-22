@@ -1,9 +1,12 @@
 package cert
 
 import (
+	"bytes"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
+	"encoding/pem"
+	"fmt"
 	"math/big"
 	"time"
 )
@@ -65,16 +68,33 @@ type X509 struct {
 type Manager struct {
 }
 
-func (c *Manager) GenRSAKey(bits int) (*rsa.PrivateKey, error) {
-	return rsa.GenerateKey(rand.Reader, bits)
-}
-
-func (c *Manager) GenX509(key *rsa.PrivateKey) {
-	// x509cert := x509.Certificate{}
-	x := x509.Certificate{}
-	x.KeyUsage
-}
+// func (c *Manager) GenX509(key *rsa.PrivateKey) {
+// 	// x509cert := x509.Certificate{}
+// 	// x := x509.Certificate{}
+// 	// x.KeyUsage
+// }
 
 func genSerial() (*big.Int, error) {
 	return rand.Int(rand.Reader, (&big.Int{}).Exp(big.NewInt(2), big.NewInt(159), nil))
+}
+
+// GenerateRSAKey using the informed size
+func GenerateRSAKey(bits int) (*rsa.PrivateKey, error) {
+	return rsa.GenerateKey(rand.Reader, bits)
+}
+
+// RSAtoPEM serializes the RSA key into PEM format
+func RSAtoPEM(key *rsa.PrivateKey) (string, error) {
+	var b bytes.Buffer
+	err := pem.Encode(
+		&b,
+		&pem.Block{
+			Type:  "RSA PRIVATE KEY",
+			Bytes: x509.MarshalPKCS1PrivateKey(key),
+		})
+	if err != nil {
+		return "", fmt.Errorf("error PEM encoding RSA key: %s", err.Error())
+	}
+
+	return b.String(), nil
 }
