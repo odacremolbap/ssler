@@ -84,6 +84,19 @@ func StringArrayToKeyUsage(keyUsage []string) (x509.KeyUsage, error) {
 	return u, nil
 }
 
+// StringArrayToExtKeyUsage converts a string array into an extended key usage type
+func StringArrayToExtKeyUsage(extKeyUsage []string) (x509.ExtKeyUsage, error) {
+	var u x509.ExtKeyUsage
+	for _, key := range extKeyUsage {
+		if v, ok := ExtKeyUsageChoices[key]; ok {
+			u = u | v
+		} else {
+			return 0, fmt.Errorf("unknown extended key usage: %s", key)
+		}
+	}
+	return u, nil
+}
+
 // GenerateX509SelfSignedCertificate takes a simplified x509 definition and an RSA key,
 // and generates a certificate
 func GenerateX509SelfSignedCertificate(c *X509, key *rsa.PrivateKey) error {

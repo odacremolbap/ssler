@@ -1,6 +1,8 @@
 package cert
 
 import (
+	"crypto/x509"
+	"fmt"
 	"log"
 	"math/big"
 	"os"
@@ -16,12 +18,13 @@ var (
 	organization       string
 	organizationalUnit string
 
-	serial       string
 	validityDays int
 	isCA         bool
 
-	keyUsages   []string
-	exKeyUsages []string
+	keyUsages    []string
+	extKeyUsages []string
+	usage        x509.KeyUsage
+	extUsage     x509.ExtKeyUsage
 
 	// RootCmd contains certificate management commands
 	RootCmd = &cobra.Command{
@@ -35,6 +38,7 @@ var (
 		Use:   "new",
 		Short: "creates certificate key pair",
 		Run:   newFunc,
+		Args:  newFuncVal,
 	}
 
 	// SignCmd manages private keys
@@ -63,11 +67,27 @@ func init() {
 	NewCmd.Flags().IntVar(&validityDays, "validity-days", 0, "number of validity days for the generated certificate")
 	NewCmd.MarkFlagRequired("validity-days")
 	NewCmd.Flags().BoolVar(&isCA, "ca", false, "[true|false] wether the certificate is a CA")
-	NewCmd.Flags().StringArrayVar(&keyUsages, "usages", []string{""}, "key usages for the certificate")
-	NewCmd.Flags().StringArrayVar(&exKeyUsages, "ex-usages", []string{""}, "extended key usages for the certificate")
+	NewCmd.Flags().StringArrayVar(&keyUsages, "usages", []string{}, "key usages for the certificate")
+	NewCmd.Flags().StringArrayVar(&extKeyUsages, "ex-usages", []string{}, "extended key usages for the certificate")
 
 	RootCmd.AddCommand(NewCmd)
 	RootCmd.AddCommand(SignCmd)
+}
+
+func newFuncVal(cmd *cobra.Command, args []string) error {
+
+	var err error
+	usage, err = cert.StringArrayToKeyUsage(keyUsages)
+	if err != nil {
+		return fmt.Errorf("error parsing key usage: %+v", err)
+	}
+
+	extUsage, err = cert.StringArrayToExtKeyUsage(extKeyUsages)
+	if err != nil {
+		return fmt.Errorf("error parsing extended key usage: %+v", err)
+	}
+
+	return nil
 }
 
 // newFunc runs the new RSA command
