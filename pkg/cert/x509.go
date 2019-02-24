@@ -109,6 +109,36 @@ func StringToExtKeyUsage(extKeyUsage string) ([]x509.ExtKeyUsage, error) {
 	return u, nil
 }
 
+// StringToDNSAddressList transforms a comma separated list of strings into an array
+func StringToDNSAddressList(dnsList string) []string {
+	temp := strings.Split(dnsList, ",")
+	adds := []string{}
+	for _, t := range temp {
+		if t == "" {
+			continue
+		}
+		adds = append(adds, t)
+	}
+	return adds
+}
+
+// StringToIPAddressList transforms a comma separated list of strings into an IP array
+func StringToIPAddressList(ipList string) ([]net.IP, error) {
+	temp := strings.Split(ipList, ",")
+	ips := []net.IP{}
+	for _, t := range temp {
+		if t == "" {
+			continue
+		}
+		parsed := net.ParseIP(t)
+		if parsed == nil {
+			return nil, fmt.Errorf("cannot parse %s as an IP address", t)
+		}
+		ips = append(ips, parsed)
+	}
+	return nil, nil
+}
+
 // GenerateX509SelfSignedCertificate takes a simplified x509 definition and an RSA key,
 // and generates a certificate
 func GenerateX509SelfSignedCertificate(c *X509, key *rsa.PrivateKey) ([]byte, error) {
