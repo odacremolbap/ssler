@@ -1,5 +1,9 @@
 # xfon
 
+[![Build Status](https://travis-ci.com/odacremolbap/xfon.svg?branch=master)](https://travis-ci.com/odacremolbap/xfon) [![codecov](https://codecov.io/gh/odacremolbap/xfon/branch/master/graph/badge.svg)](https://codecov.io/gh/odacremolbap/xfon) [![Go Report Card](https://goreportcard.com/badge/github.com/odcaremolbap/xfon)](https://goreportcard.com/report/github.com/odcaremolbap/xfon)
+
+
+
 Tool for very simple certificate signing
 
 
