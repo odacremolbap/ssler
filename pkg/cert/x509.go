@@ -1,12 +1,15 @@
 package cert
 
 import (
+	"bytes"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
+	"encoding/pem"
 	"fmt"
 	"math/big"
 	"net"
+	"strings"
 	"time"
 )
 
@@ -61,7 +64,7 @@ type X509 struct {
 	IPAddresses []net.IP
 	IsCA        bool
 	KeyUsage    x509.KeyUsage
-	ExtKeyUsage x509.ExtKeyUsage
+	ExtKeyUsage []x509.ExtKeyUsage
 }
 
 // Subject for x509 certificate
@@ -71,10 +74,14 @@ type Subject struct {
 	OrganizationalUnit string
 }
 
-// StringArrayToKeyUsage converts a string array into a key usage type
-func StringArrayToKeyUsage(keyUsage []string) (x509.KeyUsage, error) {
+// StringToKeyUsage converts a string array into a key usage type
+func StringToKeyUsage(keyUsage string) (x509.KeyUsage, error) {
 	var u x509.KeyUsage
-	for _, key := range keyUsage {
+	ku := strings.Split(keyUsage, ",")
+	for _, key := range ku {
+		if key == "" {
+			continue
+		}
 		if v, ok := KeyUsageChoices[key]; ok {
 			u = u | v
 		} else {
@@ -84,14 +91,18 @@ func StringArrayToKeyUsage(keyUsage []string) (x509.KeyUsage, error) {
 	return u, nil
 }
 
-// StringArrayToExtKeyUsage converts a string array into an extended key usage type
-func StringArrayToExtKeyUsage(extKeyUsage []string) (x509.ExtKeyUsage, error) {
-	var u x509.ExtKeyUsage
-	for _, key := range extKeyUsage {
+// StringToExtKeyUsage converts a string array into an extended key usage type
+func StringToExtKeyUsage(extKeyUsage string) ([]x509.ExtKeyUsage, error) {
+	var u []x509.ExtKeyUsage
+	ke := strings.Split(extKeyUsage, ",")
+	for _, key := range ke {
+		if key == "" {
+			continue
+		}
 		if v, ok := ExtKeyUsageChoices[key]; ok {
-			u = u | v
+			u = append(u, v)
 		} else {
-			return 0, fmt.Errorf("unknown extended key usage: %s", key)
+			return nil, fmt.Errorf("unknown extended key usage: %s", key)
 		}
 	}
 	return u, nil
@@ -116,6 +127,8 @@ func GenerateX509Certificate(c *X509, parent *x509.Certificate, publicKey *rsa.P
 		NotAfter:              c.NotAfter,
 		BasicConstraintsValid: c.IsCA,
 		IsCA:                  c.IsCA,
+		KeyUsage:              c.KeyUsage,
+		ExtKeyUsage:           c.ExtKeyUsage,
 	}
 	if parent == nil {
 		parent = x509cert
@@ -131,4 +144,21 @@ func GenerateX509Certificate(c *X509, parent *x509.Certificate, publicKey *rsa.P
 		return nil, err
 	}
 	return b, nil
+}
+
+// WritePEM serializes the certificate into a PEM string
+func WritePEM(cert []byte) (string, error) {
+
+	var p bytes.Buffer
+	err := pem.Encode(
+		&p,
+		&pem.Block{
+			Type:  "CERTIFICATE",
+			Bytes: cert,
+		})
+	if err != nil {
+		return "", fmt.Errorf("error PEM encoding certificate: %s", err.Error())
+	}
+
+	return p.String(), nil
 }
