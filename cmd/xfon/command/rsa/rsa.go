@@ -1,11 +1,12 @@
 package rsa
 
 import (
-	"errors"
 	"log"
 	"os"
 
-	"github.com/odacremolbap/xfon/pkg/cert"
+	"github.com/odacremolbap/xfon/pkg/filesystem"
+
+	"github.com/odacremolbap/xfon/pkg/rsa"
 	"github.com/spf13/cobra"
 )
 
@@ -25,7 +26,6 @@ var (
 		Use:   "new",
 		Short: "creates new RSA key",
 		Run:   newFunc,
-		Args:  newValidator,
 	}
 )
 
@@ -40,40 +40,23 @@ func init() {
 	RootCmd.AddCommand(NewCmd)
 }
 
-func newValidator(cmd *cobra.Command, args []string) error {
-	if bits > 5000 {
-		return errors.New("howdy, testing validation")
-	}
-	return nil
-}
-
 // newFunc runs the new RSA command
 func newFunc(cmd *cobra.Command, args []string) {
-	k, err := cert.GenerateRSAKey(bits)
+	k, err := rsa.GenerateKey(bits)
 	if err != nil {
 		log.Printf("error generating RSA key: %v", err.Error())
 		os.Exit(-1)
 	}
 
-	p, err := cert.RSAtoPEM(k)
+	p, err := rsa.WritePEM(k)
 	if err != nil {
 		log.Printf("error serializing RSA key into PEM: %v", err.Error())
 		os.Exit(-1)
 	}
 
-	err = writeCertFile(out, p)
+	err = filesystem.WriteContentsToFile(out, p)
 	if err != nil {
 		log.Printf("error writing RSA key to file: %v", err.Error())
 		os.Exit(-1)
 	}
-}
-
-func writeCertFile(path, contents string) error {
-	f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-	_, err = f.WriteString(contents)
-	return err
 }

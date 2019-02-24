@@ -1,13 +1,12 @@
 package cert
 
 import (
-	"bytes"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
-	"encoding/pem"
 	"fmt"
 	"math/big"
+	"net"
 	"time"
 )
 
@@ -54,47 +53,82 @@ func init() {
 
 // X509 simplified
 type X509 struct {
+	Subject     *Subject
 	Serial      *big.Int
 	NotBefore   time.Time
 	NotAfter    time.Time
 	DNSNames    []string
-	IPAddresses []string
+	IPAddresses []net.IP
 	IsCA        bool
 	KeyUsage    x509.KeyUsage
 	ExtKeyUsage x509.ExtKeyUsage
 }
 
-// Manager manages certificates
-type Manager struct {
+// Subject for x509 certificate
+type Subject struct {
+	CommonName         string
+	Organization       string
+	OrganizationalUnit string
 }
 
-// func (c *Manager) GenX509(key *rsa.PrivateKey) {
-// 	// x509cert := x509.Certificate{}
-// 	// x := x509.Certificate{}
-// 	// x.KeyUsage
-// }
-
-func genSerial() (*big.Int, error) {
-	return rand.Int(rand.Reader, (&big.Int{}).Exp(big.NewInt(2), big.NewInt(159), nil))
+// StringArrayToKeyUsage converts a string array into a key usage type
+func StringArrayToKeyUsage(keyUsage []string) (x509.KeyUsage, error) {
+	var u x509.KeyUsage
+	for _, key := range keyUsage {
+		if v, ok := KeyUsageChoices[key]; ok {
+			u = u | v
+		} else {
+			return 0, fmt.Errorf("unknown key usage: %s", key)
+		}
+	}
+	return u, nil
 }
 
-// GenerateRSAKey using the informed size
-func GenerateRSAKey(bits int) (*rsa.PrivateKey, error) {
-	return rsa.GenerateKey(rand.Reader, bits)
+// StringArrayToExtKeyUsage converts a string array into an extended key usage type
+func StringArrayToExtKeyUsage(extKeyUsage []string) (x509.ExtKeyUsage, error) {
+	var u x509.ExtKeyUsage
+	for _, key := range extKeyUsage {
+		if v, ok := ExtKeyUsageChoices[key]; ok {
+			u = u | v
+		} else {
+			return 0, fmt.Errorf("unknown extended key usage: %s", key)
+		}
+	}
+	return u, nil
 }
 
-// RSAtoPEM serializes the RSA key into PEM format
-func RSAtoPEM(key *rsa.PrivateKey) (string, error) {
-	var b bytes.Buffer
-	err := pem.Encode(
-		&b,
-		&pem.Block{
-			Type:  "RSA PRIVATE KEY",
-			Bytes: x509.MarshalPKCS1PrivateKey(key),
-		})
-	if err != nil {
-		return "", fmt.Errorf("error PEM encoding RSA key: %s", err.Error())
+// GenerateX509SelfSignedCertificate takes a simplified x509 definition and an RSA key,
+// and generates a certificate
+func GenerateX509SelfSignedCertificate(c *X509, key *rsa.PrivateKey) ([]byte, error) {
+	if c.Serial == nil {
+		c.Serial = new(big.Int).SetInt64(0)
+	}
+	return GenerateX509Certificate(c, nil, key, key)
+}
+
+// GenerateX509Certificate using the passed parameters
+func GenerateX509Certificate(c *X509, parent *x509.Certificate, publicKey *rsa.PrivateKey, signingKey *rsa.PrivateKey) ([]byte, error) {
+	x509cert := &x509.Certificate{
+		SerialNumber:          c.Serial,
+		DNSNames:              c.DNSNames,
+		IPAddresses:           c.IPAddresses,
+		NotBefore:             c.NotBefore,
+		NotAfter:              c.NotAfter,
+		BasicConstraintsValid: c.IsCA,
+		IsCA:                  c.IsCA,
+	}
+	if parent == nil {
+		parent = x509cert
 	}
 
-	return b.String(), nil
+	b, err := x509.CreateCertificate(
+		rand.Reader,
+		x509cert,
+		parent,
+		&publicKey.PublicKey,
+		signingKey)
+	if err != nil {
+		return nil, err
+	}
+	return b, nil
 }
