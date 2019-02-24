@@ -6,6 +6,7 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
+	"errors"
 	"fmt"
 )
 
@@ -28,4 +29,20 @@ func WritePEM(key *rsa.PrivateKey) (string, error) {
 	}
 
 	return b.String(), nil
+}
+
+// ReadPEM looks for an RSA private key into a PEM certificate
+func ReadPEM(b []byte) (*rsa.PrivateKey, error) {
+
+	der, _ := pem.Decode(b)
+	if der == nil {
+		return nil, errors.New("private key file doesn't contain a PEM encoded key")
+	}
+
+	key, err := x509.ParsePKCS1PrivateKey(der.Bytes)
+	if err != nil {
+		return nil, fmt.Errorf("cannot parse signing key file: %s", err.Error())
+	}
+
+	return key, nil
 }

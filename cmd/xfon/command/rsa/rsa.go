@@ -4,6 +4,8 @@ import (
 	"log"
 	"os"
 
+	"github.com/odacremolbap/xfon/pkg/filesystem"
+
 	"github.com/odacremolbap/xfon/pkg/rsa"
 	"github.com/spf13/cobra"
 )
@@ -52,19 +54,9 @@ func newFunc(cmd *cobra.Command, args []string) {
 		os.Exit(-1)
 	}
 
-	err = writeCertFile(out, p)
+	err = filesystem.WriteContentsToFile(out, p)
 	if err != nil {
 		log.Printf("error writing RSA key to file: %v", err.Error())
 		os.Exit(-1)
 	}
-}
-
-func writeCertFile(path, contents string) error {
-	f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-	_, err = f.WriteString(contents)
-	return err
 }

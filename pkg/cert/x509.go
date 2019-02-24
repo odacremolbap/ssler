@@ -99,7 +99,7 @@ func StringArrayToExtKeyUsage(extKeyUsage []string) (x509.ExtKeyUsage, error) {
 
 // GenerateX509SelfSignedCertificate takes a simplified x509 definition and an RSA key,
 // and generates a certificate
-func GenerateX509SelfSignedCertificate(c *X509, key *rsa.PrivateKey) error {
+func GenerateX509SelfSignedCertificate(c *X509, key *rsa.PrivateKey) ([]byte, error) {
 	if c.Serial == nil {
 		c.Serial = new(big.Int).SetInt64(0)
 	}
@@ -107,7 +107,7 @@ func GenerateX509SelfSignedCertificate(c *X509, key *rsa.PrivateKey) error {
 }
 
 // GenerateX509Certificate using the passed parameters
-func GenerateX509Certificate(c *X509, parent *x509.Certificate, publicKey *rsa.PrivateKey, signingKey *rsa.PrivateKey) error {
+func GenerateX509Certificate(c *X509, parent *x509.Certificate, publicKey *rsa.PrivateKey, signingKey *rsa.PrivateKey) ([]byte, error) {
 	x509cert := &x509.Certificate{
 		SerialNumber:          c.Serial,
 		DNSNames:              c.DNSNames,
@@ -121,12 +121,14 @@ func GenerateX509Certificate(c *X509, parent *x509.Certificate, publicKey *rsa.P
 		parent = x509cert
 	}
 
-	x509.CreateCertificate(
+	b, err := x509.CreateCertificate(
 		rand.Reader,
 		x509cert,
 		parent,
-		publicKey,
+		&publicKey.PublicKey,
 		signingKey)
-
-	return nil
+	if err != nil {
+		return nil, err
+	}
+	return b, nil
 }

@@ -9,6 +9,8 @@ import (
 	"time"
 
 	"github.com/odacremolbap/xfon/pkg/cert"
+	"github.com/odacremolbap/xfon/pkg/filesystem"
+	"github.com/odacremolbap/xfon/pkg/rsa"
 	"github.com/spf13/cobra"
 )
 
@@ -18,13 +20,17 @@ var (
 	organization       string
 	organizationalUnit string
 
+	// features
 	validityDays int
 	isCA         bool
-
 	keyUsages    []string
 	extKeyUsages []string
 	usage        x509.KeyUsage
 	extUsage     x509.ExtKeyUsage
+
+	// in and out
+	keyIn   string
+	certOut string
 
 	// RootCmd contains certificate management commands
 	RootCmd = &cobra.Command{
@@ -55,20 +61,23 @@ func runHelp(cmd *cobra.Command, args []string) {
 
 func init() {
 
-	// NewCmd.PersistentFlags().StringVar(&name, "name", "ca", "name for generated certificate files")
-	// NewCmd.PersistentFlags().StringVar(&path, "path", "", "path for the generated assets (must exist)")
-
 	// subject
 	NewCmd.Flags().StringVar(&commonName, "common-name", "", "CN for certificate")
 	NewCmd.Flags().StringVar(&organization, "organization", "", "O for certificate")
 	NewCmd.Flags().StringVar(&organizationalUnit, "organizational-unit", "", "OU for certificate")
 
 	// features
-	NewCmd.Flags().IntVar(&validityDays, "validity-days", 0, "number of validity days for the generated certificate")
-	NewCmd.MarkFlagRequired("validity-days")
+	NewCmd.Flags().IntVar(&validityDays, "days", 0, "number of validity days for the generated certificate")
+	NewCmd.MarkFlagRequired("days")
 	NewCmd.Flags().BoolVar(&isCA, "ca", false, "[true|false] wether the certificate is a CA")
 	NewCmd.Flags().StringArrayVar(&keyUsages, "usages", []string{}, "key usages for the certificate")
 	NewCmd.Flags().StringArrayVar(&extKeyUsages, "ex-usages", []string{}, "extended key usages for the certificate")
+
+	// in and out
+	NewCmd.Flags().StringVar(&keyIn, "key-in", "", "path to key used for signing")
+	NewCmd.MarkFlagRequired("key-in")
+	NewCmd.Flags().StringVar(&certOut, "cert-out", "", "generated certificate file path")
+	NewCmd.MarkFlagRequired("cert-out")
 
 	RootCmd.AddCommand(NewCmd)
 	RootCmd.AddCommand(SignCmd)
@@ -92,11 +101,19 @@ func newFuncVal(cmd *cobra.Command, args []string) error {
 
 // newFunc runs the new RSA command
 func newFunc(cmd *cobra.Command, args []string) {
-	// Generate certificate
-	// get pem encoded key
-	// get pem encoded public
-	// write key
-	// write certificate
+
+	ki, err := filesystem.ReadContentsFromFile(keyIn)
+	if err != nil {
+		log.Printf("error reading key: %v", err.Error())
+		os.Exit(-1)
+	}
+
+	key, err := rsa.ReadPEM(ki)
+	if err != nil {
+		log.Printf("no key found at %q: %v", keyIn, err.Error())
+		os.Exit(-1)
+	}
+
 	tb := time.Now().UTC()
 	ta := tb.AddDate(0, 0, validityDays).UTC()
 
@@ -110,25 +127,21 @@ func newFunc(cmd *cobra.Command, args []string) {
 		NotBefore:   tb,
 		NotAfter:    ta,
 		IsCA:        isCA,
-		KeyUsage:    0,
-		ExtKeyUsage: 0,
+		KeyUsage:    usage,
+		ExtKeyUsage: extUsage,
 	}
-	err := cert.GenerateX509SelfSignedCertificate(x, nil)
+	log.Printf("this is the key: +%v", key.PublicKey)
+	b, err := cert.GenerateX509SelfSignedCertificate(x, key)
 	if err != nil {
-		log.Printf("error generating RSA key: %v", err.Error())
+		log.Printf("error generating certificate: %v", err.Error())
 		os.Exit(-1)
 	}
-	log.Printf("debugging: %+v", x)
 
-	// p, err := cert.RSAtoPEM(k)
-	// if err != nil {
-	// 	log.Printf("error serializing RSA key into PEM: %v", err.Error())
-	// 	os.Exit(-1)
-	// }
+	pem, err := cert.WritePEM(b)
+	if err != nil {
+		log.Printf("error encoding certificate: %v", err.Error())
+		os.Exit(-1)
+	}
 
-	// err = writeCertFile(out, p)
-	// if err != nil {
-	// 	log.Printf("error writing RSA key to file: %v", err.Error())
-	// 	os.Exit(-1)
-	// }
+	filesystem.WriteContentsToFile(certOut, pem)
 }

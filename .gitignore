@@ -16,3 +16,7 @@
 
 # Vendored folder
 vendor/
+
+
+# local folder, for any asset that should not get pushed
+/local/*
