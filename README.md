@@ -28,7 +28,7 @@ Create Signed CA certificate
 ./xfon rsa new --bits 4096 --out local/server.key
 
 ./xfon x509 signed --cert-out local/server.crt --key-in local/server.key \
-    --signing-cert local/ca.crt --signing-key local/ca.key \
+    --parent-cert local/ca.crt --signing-key local/ca.key \
     --days 365 --common-name serverCN --organization myOrg \
     --ip-addresses 192.168.0.30,127.0.0.1 \
     --dns-addresses localhost,myserver.local \

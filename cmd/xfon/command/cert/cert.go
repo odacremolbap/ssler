@@ -36,8 +36,10 @@ var (
 	ipList         []net.IP
 
 	// in and out
-	keyIn   string
-	certOut string
+	keyIn      string
+	certOut    string
+	signingKey string
+	parentCert string
 
 	// RootCmd contains certificate management commands
 	RootCmd = &cobra.Command{
@@ -88,7 +90,7 @@ func init() {
 	NewCmd.PersistentFlags().StringVar(&ipAddressList, "ip-addresses", "", "comma separated list of ip addresses")
 
 	// in and out
-	NewCmd.Flags().StringVar(&keyIn, "key-in", "", "path to key used for signing")
+	NewCmd.Flags().StringVar(&keyIn, "key-in", "", "path to key")
 	NewCmd.MarkFlagRequired("key-in")
 	NewCmd.Flags().StringVar(&certOut, "cert-out", "", "generated certificate file path")
 	NewCmd.MarkFlagRequired("cert-out")
@@ -111,10 +113,14 @@ func init() {
 	SignCmd.PersistentFlags().StringVar(&ipAddressList, "ip-addresses", "", "comma separated list of ip addresses")
 
 	// in and out
-	SignCmd.Flags().StringVar(&keyIn, "key-in", "", "path to key used for signing")
+	SignCmd.Flags().StringVar(&keyIn, "key-in", "", "path to key")
 	SignCmd.MarkFlagRequired("key-in")
 	SignCmd.Flags().StringVar(&certOut, "cert-out", "", "generated certificate file path")
 	SignCmd.MarkFlagRequired("cert-out")
+	SignCmd.Flags().StringVar(&signingKey, "signing-key", "", "path to key used for signing")
+	SignCmd.MarkFlagRequired("signing-key")
+	SignCmd.Flags().StringVar(&parentCert, "parent-cert", "", "path to parent cert")
+	SignCmd.MarkFlagRequired("parent-cert")
 
 	RootCmd.AddCommand(NewCmd)
 	RootCmd.AddCommand(SignCmd)
