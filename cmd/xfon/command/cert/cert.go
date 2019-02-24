@@ -23,10 +23,10 @@ var (
 	// features
 	validityDays int
 	isCA         bool
-	keyUsages    []string
-	extKeyUsages []string
+	keyUsages    string
+	extKeyUsages string
 	usage        x509.KeyUsage
-	extUsage     x509.ExtKeyUsage
+	extUsage     []x509.ExtKeyUsage
 
 	// in and out
 	keyIn   string
@@ -70,8 +70,8 @@ func init() {
 	NewCmd.Flags().IntVar(&validityDays, "days", 0, "number of validity days for the generated certificate")
 	NewCmd.MarkFlagRequired("days")
 	NewCmd.Flags().BoolVar(&isCA, "ca", false, "[true|false] wether the certificate is a CA")
-	NewCmd.Flags().StringArrayVar(&keyUsages, "usages", []string{}, "key usages for the certificate")
-	NewCmd.Flags().StringArrayVar(&extKeyUsages, "ex-usages", []string{}, "extended key usages for the certificate")
+	NewCmd.Flags().StringVar(&keyUsages, "usages", "", "comma separated key usages for the certificate")
+	NewCmd.Flags().StringVar(&extKeyUsages, "ex-usages", "", "comma separated extended key usages for the certificate")
 
 	// in and out
 	NewCmd.Flags().StringVar(&keyIn, "key-in", "", "path to key used for signing")
@@ -86,12 +86,12 @@ func init() {
 func newFuncVal(cmd *cobra.Command, args []string) error {
 
 	var err error
-	usage, err = cert.StringArrayToKeyUsage(keyUsages)
+	usage, err = cert.StringToKeyUsage(keyUsages)
 	if err != nil {
 		return fmt.Errorf("error parsing key usage: %+v", err)
 	}
 
-	extUsage, err = cert.StringArrayToExtKeyUsage(extKeyUsages)
+	extUsage, err = cert.StringToExtKeyUsage(extKeyUsages)
 	if err != nil {
 		return fmt.Errorf("error parsing extended key usage: %+v", err)
 	}
@@ -101,7 +101,6 @@ func newFuncVal(cmd *cobra.Command, args []string) error {
 
 // newFunc runs the new RSA command
 func newFunc(cmd *cobra.Command, args []string) {
-
 	ki, err := filesystem.ReadContentsFromFile(keyIn)
 	if err != nil {
 		log.Printf("error reading key: %v", err.Error())
@@ -130,7 +129,7 @@ func newFunc(cmd *cobra.Command, args []string) {
 		KeyUsage:    usage,
 		ExtKeyUsage: extUsage,
 	}
-	log.Printf("this is the key: +%v", key.PublicKey)
+
 	b, err := cert.GenerateX509SelfSignedCertificate(x, key)
 	if err != nil {
 		log.Printf("error generating certificate: %v", err.Error())

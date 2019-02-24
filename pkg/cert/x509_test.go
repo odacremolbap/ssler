@@ -7,48 +7,44 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestStringArrayToKeyUsage(t *testing.T) {
+func TestStringToKeyUsage(t *testing.T) {
 
 	var testData = []struct {
 		testName    string
-		keyUsage    []string
+		keyUsage    string
 		keyUsageRet x509.KeyUsage
 		errorRet    bool
 	}{
 		{
 			testName:    "empty usage",
-			keyUsage:    []string{},
+			keyUsage:    "",
 			keyUsageRet: 0,
 			errorRet:    false,
 		},
 		{
 			testName:    "one usage",
-			keyUsage:    []string{"KeyUsageDigitalSignature"},
+			keyUsage:    "KeyUsageDigitalSignature",
 			keyUsageRet: x509.KeyUsageDigitalSignature,
 			errorRet:    false,
 		},
 		{
 			testName: "multi usage",
-			keyUsage: []string{"KeyUsageKeyEncipherment",
-				"KeyUsageDigitalSignature",
-				"KeyUsageCertSign"},
+			keyUsage: "KeyUsageKeyEncipherment,KeyUsageDigitalSignature,KeyUsageCertSign",
 			keyUsageRet: x509.KeyUsageKeyEncipherment |
 				x509.KeyUsageDigitalSignature |
 				x509.KeyUsageCertSign,
 			errorRet: false,
 		},
 		{
-			testName: "error usage",
-			keyUsage: []string{"KeyUsageKeyEncipherment",
-				"KeyUsageDigitalSignature",
-				"WRONG"},
+			testName:    "error usage",
+			keyUsage:    "KeyUsageKeyEncipherment,KeyUsageDigitalSignature,WRONG",
 			keyUsageRet: 0,
 			errorRet:    true,
 		},
 	}
 
 	for _, td := range testData {
-		k, err := StringArrayToKeyUsage(td.keyUsage)
+		k, err := StringToKeyUsage(td.keyUsage)
 
 		if td.errorRet {
 			assert.Errorf(t, err, "test: %s", td.testName)
@@ -59,44 +55,42 @@ func TestStringArrayToKeyUsage(t *testing.T) {
 	}
 }
 
-func TestStringArrayToExtKeyUsage(t *testing.T) {
+func TestStringToExtKeyUsage(t *testing.T) {
 
 	var testData = []struct {
 		testName       string
-		extKeyUsage    []string
-		extKeyUsageRet x509.ExtKeyUsage
+		extKeyUsage    string
+		extKeyUsageRet []x509.ExtKeyUsage
 		errorRet       bool
 	}{
 		{
 			testName:       "empty usage",
-			extKeyUsage:    []string{},
-			extKeyUsageRet: 0,
+			extKeyUsage:    "",
+			extKeyUsageRet: []x509.ExtKeyUsage(nil),
 			errorRet:       false,
 		},
 		{
 			testName:       "one usage",
-			extKeyUsage:    []string{"ExtKeyUsageServerAuth"},
-			extKeyUsageRet: x509.ExtKeyUsageServerAuth,
+			extKeyUsage:    "ExtKeyUsageServerAuth",
+			extKeyUsageRet: []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
 			errorRet:       false,
 		},
 		{
-			testName: "multi usage",
-			extKeyUsage: []string{"ExtKeyUsageServerAuth",
-				"ExtKeyUsageClientAuth"},
-			extKeyUsageRet: x509.ExtKeyUsageServerAuth | x509.ExtKeyUsageClientAuth,
+			testName:       "multi usage",
+			extKeyUsage:    "ExtKeyUsageServerAuth,ExtKeyUsageClientAuth",
+			extKeyUsageRet: []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth, x509.ExtKeyUsageClientAuth},
 			errorRet:       false,
 		},
 		{
-			testName: "error usage",
-			extKeyUsage: []string{"ExtKeyUsageServerAuth",
-				"WRONG"},
-			extKeyUsageRet: 0,
+			testName:       "error usage",
+			extKeyUsage:    "ExtKeyUsageServerAuth,WRONG",
+			extKeyUsageRet: []x509.ExtKeyUsage(nil),
 			errorRet:       true,
 		},
 	}
 
 	for _, td := range testData {
-		k, err := StringArrayToExtKeyUsage(td.extKeyUsage)
+		k, err := StringToExtKeyUsage(td.extKeyUsage)
 
 		if td.errorRet {
 			assert.Errorf(t, err, "test: %s", td.testName)
