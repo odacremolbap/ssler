@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
+	"crypto/x509/pkix"
 	"encoding/pem"
 	"fmt"
 	"math/big"
@@ -119,7 +120,19 @@ func GenerateX509SelfSignedCertificate(c *X509, key *rsa.PrivateKey) ([]byte, er
 
 // GenerateX509Certificate using the passed parameters
 func GenerateX509Certificate(c *X509, parent *x509.Certificate, publicKey *rsa.PrivateKey, signingKey *rsa.PrivateKey) ([]byte, error) {
+
+	subject := pkix.Name{
+		CommonName: c.Subject.CommonName,
+	}
+	if c.Subject.Organization != "" {
+		subject.Organization = []string{c.Subject.Organization}
+	}
+	if c.Subject.OrganizationalUnit != "" {
+		subject.OrganizationalUnit = []string{c.Subject.OrganizationalUnit}
+	}
+
 	x509cert := &x509.Certificate{
+		Subject:               subject,
 		SerialNumber:          c.Serial,
 		DNSNames:              c.DNSNames,
 		IPAddresses:           c.IPAddresses,
