@@ -5,7 +5,9 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
+	"crypto/x509/pkix"
 	"encoding/pem"
+	"errors"
 	"fmt"
 	"math/big"
 	"net"
@@ -108,6 +110,36 @@ func StringToExtKeyUsage(extKeyUsage string) ([]x509.ExtKeyUsage, error) {
 	return u, nil
 }
 
+// StringToDNSAddressList transforms a comma separated list of strings into an array
+func StringToDNSAddressList(dnsList string) []string {
+	temp := strings.Split(dnsList, ",")
+	adds := []string{}
+	for _, t := range temp {
+		if t == "" {
+			continue
+		}
+		adds = append(adds, t)
+	}
+	return adds
+}
+
+// StringToIPAddressList transforms a comma separated list of strings into an IP array
+func StringToIPAddressList(ipList string) ([]net.IP, error) {
+	temp := strings.Split(ipList, ",")
+	ips := []net.IP{}
+	for _, t := range temp {
+		if t == "" {
+			continue
+		}
+		parsed := net.ParseIP(t)
+		if parsed == nil {
+			return nil, fmt.Errorf("cannot parse %s as an IP address", t)
+		}
+		ips = append(ips, parsed)
+	}
+	return nil, nil
+}
+
 // GenerateX509SelfSignedCertificate takes a simplified x509 definition and an RSA key,
 // and generates a certificate
 func GenerateX509SelfSignedCertificate(c *X509, key *rsa.PrivateKey) ([]byte, error) {
@@ -119,7 +151,19 @@ func GenerateX509SelfSignedCertificate(c *X509, key *rsa.PrivateKey) ([]byte, er
 
 // GenerateX509Certificate using the passed parameters
 func GenerateX509Certificate(c *X509, parent *x509.Certificate, publicKey *rsa.PrivateKey, signingKey *rsa.PrivateKey) ([]byte, error) {
+
+	subject := pkix.Name{
+		CommonName: c.Subject.CommonName,
+	}
+	if c.Subject.Organization != "" {
+		subject.Organization = []string{c.Subject.Organization}
+	}
+	if c.Subject.OrganizationalUnit != "" {
+		subject.OrganizationalUnit = []string{c.Subject.OrganizationalUnit}
+	}
+
 	x509cert := &x509.Certificate{
+		Subject:               subject,
 		SerialNumber:          c.Serial,
 		DNSNames:              c.DNSNames,
 		IPAddresses:           c.IPAddresses,
@@ -161,4 +205,19 @@ func WritePEM(cert []byte) (string, error) {
 	}
 
 	return p.String(), nil
+}
+
+// ReadPEM reads a certificate from PEM format
+func ReadPEM(cert []byte) (*x509.Certificate, error) {
+	der, _ := pem.Decode(cert)
+	if der == nil {
+		return nil, errors.New("certificate doesn't contain a PEM encoded key")
+	}
+
+	c, err := x509.ParseCertificate(der.Bytes)
+	if err != nil {
+		return nil, fmt.Errorf("cannot parse certificate: %s", err.Error())
+	}
+
+	return c, nil
 }
