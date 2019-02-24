@@ -60,31 +60,31 @@ func TestStringToExtKeyUsage(t *testing.T) {
 	var testData = []struct {
 		testName       string
 		extKeyUsage    string
-		extKeyUsageRet x509.ExtKeyUsage
+		extKeyUsageRet []x509.ExtKeyUsage
 		errorRet       bool
 	}{
 		{
 			testName:       "empty usage",
 			extKeyUsage:    "",
-			extKeyUsageRet: 0,
+			extKeyUsageRet: []x509.ExtKeyUsage(nil),
 			errorRet:       false,
 		},
 		{
 			testName:       "one usage",
 			extKeyUsage:    "ExtKeyUsageServerAuth",
-			extKeyUsageRet: x509.ExtKeyUsageServerAuth,
+			extKeyUsageRet: []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
 			errorRet:       false,
 		},
 		{
 			testName:       "multi usage",
 			extKeyUsage:    "ExtKeyUsageServerAuth,ExtKeyUsageClientAuth",
-			extKeyUsageRet: x509.ExtKeyUsageServerAuth | x509.ExtKeyUsageClientAuth,
+			extKeyUsageRet: []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth, x509.ExtKeyUsageClientAuth},
 			errorRet:       false,
 		},
 		{
 			testName:       "error usage",
 			extKeyUsage:    "ExtKeyUsageServerAuth,WRONG",
-			extKeyUsageRet: 0,
+			extKeyUsageRet: []x509.ExtKeyUsage(nil),
 			errorRet:       true,
 		},
 	}
