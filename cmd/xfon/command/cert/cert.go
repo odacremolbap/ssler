@@ -83,7 +83,7 @@ func init() {
 	NewCmd.MarkFlagRequired("days")
 	NewCmd.Flags().BoolVar(&isCA, "ca", false, "[true|false] wether the certificate is a CA")
 	NewCmd.Flags().StringVar(&keyUsages, "usages", "", "comma separated key usages for the certificate")
-	NewCmd.Flags().StringVar(&extKeyUsages, "ex-usages", "", "comma separated extended key usages for the certificate")
+	NewCmd.Flags().StringVar(&extKeyUsages, "ext-usages", "", "comma separated extended key usages for the certificate")
 
 	// addresses
 	NewCmd.PersistentFlags().StringVar(&dnsAddressList, "dns-addresses", "", "comma separated list of name addresses")
@@ -106,7 +106,7 @@ func init() {
 	SignCmd.Flags().IntVar(&validityDays, "days", 0, "number of validity days for the generated certificate")
 	SignCmd.MarkFlagRequired("days")
 	SignCmd.Flags().StringVar(&keyUsages, "usages", "", "comma separated key usages for the certificate")
-	SignCmd.Flags().StringVar(&extKeyUsages, "ex-usages", "", "comma separated extended key usages for the certificate")
+	SignCmd.Flags().StringVar(&extKeyUsages, "ext-usages", "", "comma separated extended key usages for the certificate")
 
 	// addresses
 	SignCmd.PersistentFlags().StringVar(&dnsAddressList, "dns-addresses", "", "comma separated list of name addresses")
@@ -212,9 +212,85 @@ func signedVal(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("error parsing extended key usage: %+v", err)
 	}
 
+	ipList, err = cert.StringToIPAddressList(ipAddressList)
+	if err != nil {
+		return fmt.Errorf("error parsing extended key usage: %+v", err)
+	}
+
+	dnsList = cert.StringToDNSAddressList(dnsAddressList)
+
 	return nil
 }
 
 // signedRun runs the signed certificate command
 func signedRun(cmd *cobra.Command, args []string) {
+	ki, err := filesystem.ReadContentsFromFile(keyIn)
+	if err != nil {
+		log.Printf("error reading key %q: %v", keyIn, err.Error())
+		os.Exit(-1)
+	}
+
+	key, err := rsa.ReadPEM(ki)
+	if err != nil {
+		log.Printf("no key found at %q: %v", keyIn, err.Error())
+		os.Exit(-1)
+	}
+
+	pc, err := filesystem.ReadContentsFromFile(parentCert)
+	if err != nil {
+		log.Printf("error reading parent cert %q: %v", parentCert, err.Error())
+		os.Exit(-1)
+	}
+
+	parent, err := cert.ReadPEM(pc)
+	if err != nil {
+		log.Printf("no cert found at %q: %v", parentCert, err.Error())
+		os.Exit(-1)
+	}
+
+	sk, err := filesystem.ReadContentsFromFile(signingKey)
+	if err != nil {
+		log.Printf("error reading signing key %q: %v", signingKey, err.Error())
+		os.Exit(-1)
+	}
+
+	signing, err := rsa.ReadPEM(sk)
+	if err != nil {
+		log.Printf("no key found at %q: %v", signingKey, err.Error())
+		os.Exit(-1)
+	}
+
+	tb := time.Now().UTC()
+	ta := tb.AddDate(0, 0, validityDays).UTC()
+
+	x := &cert.X509{
+		Subject: &cert.Subject{
+			CommonName:         commonName,
+			Organization:       organization,
+			OrganizationalUnit: organizationalUnit,
+		},
+		DNSNames:    dnsList,
+		IPAddresses: ipList,
+		Serial:      new(big.Int).SetInt64(0),
+		NotBefore:   tb,
+		NotAfter:    ta,
+		IsCA:        isCA,
+		KeyUsage:    usage,
+		ExtKeyUsage: extUsage,
+	}
+
+	// b, err := cert.GenerateX509SelfSignedCertificate(x, key)
+	b, err := cert.GenerateX509Certificate(x, parent, key, signing)
+	if err != nil {
+		log.Printf("error generating certificate: %v", err.Error())
+		os.Exit(-1)
+	}
+
+	pem, err := cert.WritePEM(b)
+	if err != nil {
+		log.Printf("error encoding certificate: %v", err.Error())
+		os.Exit(-1)
+	}
+
+	filesystem.WriteContentsToFile(certOut, pem)
 }

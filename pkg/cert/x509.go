@@ -7,6 +7,7 @@ import (
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/pem"
+	"errors"
 	"fmt"
 	"math/big"
 	"net"
@@ -204,4 +205,19 @@ func WritePEM(cert []byte) (string, error) {
 	}
 
 	return p.String(), nil
+}
+
+// ReadPEM reads a certificate from PEM format
+func ReadPEM(cert []byte) (*x509.Certificate, error) {
+	der, _ := pem.Decode(cert)
+	if der == nil {
+		return nil, errors.New("certificate doesn't contain a PEM encoded key")
+	}
+
+	c, err := x509.ParseCertificate(der.Bytes)
+	if err != nil {
+		return nil, fmt.Errorf("cannot parse certificate: %s", err.Error())
+	}
+
+	return c, nil
 }
