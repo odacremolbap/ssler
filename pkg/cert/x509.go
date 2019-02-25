@@ -56,8 +56,8 @@ func init() {
 	}
 }
 
-// X509 simplified
-type X509 struct {
+// X509Simplified simplified
+type X509Simplified struct {
 	Subject     *Subject
 	Serial      *big.Int
 	NotBefore   time.Time
@@ -142,7 +142,7 @@ func StringToIPAddressList(ipList string) ([]net.IP, error) {
 
 // GenerateX509SelfSignedCertificate takes a simplified x509 definition and an RSA key,
 // and generates a certificate
-func GenerateX509SelfSignedCertificate(c *X509, key *rsa.PrivateKey) ([]byte, error) {
+func GenerateX509SelfSignedCertificate(c *X509Simplified, key *rsa.PrivateKey) ([]byte, error) {
 	if c.Serial == nil {
 		c.Serial = new(big.Int).SetInt64(0)
 	}
@@ -150,7 +150,7 @@ func GenerateX509SelfSignedCertificate(c *X509, key *rsa.PrivateKey) ([]byte, er
 }
 
 // GenerateX509Certificate using the passed parameters
-func GenerateX509Certificate(c *X509, parent *x509.Certificate, publicKey *rsa.PrivateKey, signingKey *rsa.PrivateKey) ([]byte, error) {
+func GenerateX509Certificate(c *X509Simplified, parent *x509.Certificate, publicKey *rsa.PrivateKey, signingKey *rsa.PrivateKey) ([]byte, error) {
 
 	subject := pkix.Name{
 		CommonName: c.Subject.CommonName,
