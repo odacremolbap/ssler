@@ -26,7 +26,7 @@ Create CA certificate
 
 ```
 
-Create Signed CA certificate
+Create Signed certificate
 
 ```
 ./xfon rsa new --bits 4096 --out local/server.key
