@@ -3,6 +3,9 @@ package cert
 import (
 	"crypto/x509"
 	"testing"
+	"time"
+
+	"github.com/odacremolbap/xfon/pkg/rsa"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -99,4 +102,57 @@ func TestStringToExtKeyUsage(t *testing.T) {
 		}
 		assert.Equal(t, td.extKeyUsageRet, k, "test: %s", td.testName)
 	}
+}
+
+func TestX509Generation(t *testing.T) {
+
+	var testData = []struct {
+		testName string
+		keySize  int
+		x509     *X509Simplified
+	}{
+		{
+			testName: "simple1",
+			keySize:  4096,
+			x509: &X509Simplified{
+				Subject: &Subject{
+					CommonName: "simple1",
+				},
+				NotBefore: time.Now().UTC(),
+				NotAfter:  time.Now().AddDate(0, 0, 100).UTC(),
+				IsCA:      true,
+			},
+		},
+		{
+			testName: "simple2",
+			keySize:  4096,
+			x509: &X509Simplified{
+				Subject: &Subject{
+					CommonName:   "simple2",
+					Organization: "organization2",
+				},
+				NotBefore: time.Now().UTC(),
+				NotAfter:  time.Now().AddDate(0, 0, 100).UTC(),
+				IsCA:      true,
+			},
+		},
+	}
+
+	for _, td := range testData {
+		key, _ := rsa.GenerateKey(td.keySize)
+		b, err := GenerateX509SelfSignedCertificate(td.x509, key)
+
+		c, err := x509.ParseCertificate(b)
+		assert.Nil(t, err)
+		assert.Equal(t, td.x509.Subject.CommonName, c.Subject.CommonName)
+		if td.x509.Subject.Organization != "" {
+			assert.Equal(t, td.x509.Subject.Organization, c.Subject.Organization[0])
+		}
+		if td.x509.Subject.OrganizationalUnit != "" {
+			assert.Equal(t, td.x509.Subject.OrganizationalUnit, c.Subject.OrganizationalUnit[0])
+		}
+
+		assert.Equal(t, td.x509.IsCA, c.IsCA)
+	}
+
 }
