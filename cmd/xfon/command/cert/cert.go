@@ -263,7 +263,7 @@ func signedRun(cmd *cobra.Command, args []string) {
 	tb := time.Now().UTC()
 	ta := tb.AddDate(0, 0, validityDays).UTC()
 
-	x := &cert.X509{
+	x := &cert.X509Simplified{
 		Subject: &cert.Subject{
 			CommonName:         commonName,
 			Organization:       organization,
