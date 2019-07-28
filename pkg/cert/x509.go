@@ -137,7 +137,7 @@ func StringToIPAddressList(ipList string) ([]net.IP, error) {
 		}
 		ips = append(ips, parsed)
 	}
-	return nil, nil
+	return ips, nil
 }
 
 // GenerateX509SelfSignedCertificate takes a simplified x509 definition and an RSA key,
